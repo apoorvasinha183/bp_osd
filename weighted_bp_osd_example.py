@@ -5,10 +5,9 @@ Before running, install `bposd' and `ldpc`
 '''
 
 import numpy as np
-from bposd.hgp import hgp
-from bposd import bposd_decoder
+from bposd_eff.hgp import hgp
+from bposd_eff import bposd_decoder
 from ldpc.codes import rep_code
-
 ''''
 Distance 2 surface code
 '''

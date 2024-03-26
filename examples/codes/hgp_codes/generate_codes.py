@@ -1,5 +1,5 @@
 import numpy as np
-from bposd.hgp import hgp
+from bposd_eff.hgp import hgp
 
 classical_seed_codes = ['mkmn_16_4_6.txt','mkmn_20_5_8.txt','mkmn_24_6_10.txt']
 
