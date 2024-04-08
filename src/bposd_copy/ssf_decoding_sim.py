@@ -71,7 +71,7 @@ class ssf_decoding_sim():
             "runtime": 0.0,
             "runtime_readable": None,
             "run_count": 0,
-            "ssf_success":0,
+            "ssf_success": 0,
             "ssf_word_error_rate": 0.0,
             "ssf_logical_error_rate": 0.0,
             "min_logical_weight": 1e9
@@ -157,8 +157,8 @@ class ssf_decoding_sim():
                         if rows[i] == 1:
                             non_zero_idx.append(i)
                     # Generate powerset 
-                    print("row sis ",rows)
-                    print("non zero locations ",non_zero_idx)
+                    #print("row sis ",rows)
+                    #print("non zero locations ",non_zero_idx)
                     candidates = self._setofsets(non_zero_idx)
                     #print("total length is ",len(candidates))    
                     probable_error = min_correct
@@ -201,6 +201,7 @@ class ssf_decoding_sim():
         #print("Hx is ",Hx)
         z_error = synd_z
         min_correct = np.zeros(self.N)
+        #print("input error is ",sum(z_error))
         if sum(z_error) == 0:
             return min_correct
         # Fix errors by scanning every row in the parity matrix and create a powerset of 
@@ -208,12 +209,21 @@ class ssf_decoding_sim():
         # if done give the largest flip weighted by the size of the flipset.
         if sum(z_error)!=0 :
             
-            minima = 0
+            
             
             while(1):
                 improved = 0
                 #print("Improvement perhaps")
-                for rows in Hx:
+                minima = 0
+                #print("Here")
+                # Find the non zero indicex in the syndrome chain
+                bad_index = []
+                for j in range(len(z_error)):
+                    if z_error[j]==1:
+                        bad_index.append(j)
+                #print("bad indexes ",bad_index)
+                for index in bad_index:
+                    rows = Hx[index]
                     #print("rows time seen ",improved)
                     #Figure out the non-zero locations
                     non_zero_idx = []
@@ -226,33 +236,40 @@ class ssf_decoding_sim():
                     #print(" \n non zero locations ",non_zero_idx)    
                     candidates = self._setofsets(non_zero_idx)
                     #print("total length is ",len(candidates))    
-                    probable_error = min_correct
+                    
                     for candidate in candidates:
                         # Flip the syndrome at the locations marked and check the decpreciation in weight
-                        
+                        probable_error = min_correct
                         current_Synd = z_error
                         for positions in candidate:
                             probable_error[positions] = (probable_error[positions]+1) % 2
                         # Measure new syndromw
                         new_Syndrome = (self.hx @ probable_error) % 2
+                        #print("\n new syndrome weights ",sum(new_Syndrome))
                         #if sum(new_Syndrome) == 0:
                         #    self.z_inferred_error = probable_error
                         #    #print("Completely resolved!")
                         #    return 
                         improvement = (sum(current_Synd)-sum(new_Syndrome))/ len(candidate)
+                        #if sum(new_Syndrome) == 0:
+                            #print("Cndidate length is ",len(candidate))
                         if improvement > minima:
                             improved += 1
-                            #print("Breakthrough")
-                            min_correct = probable_error
+                            #print("Breakthrough ",sum(new_Syndrome))
+                            min_correct_candidate = probable_error
                             minima = improvement
-                            z_error = new_Syndrome
+                            z_error_candidate = new_Syndrome
+                           
                 if improved == 0:
-                    print("Decoder failure!!")
+                    #print("Decoder failure!! ", sum(z_error))
                     self.z_inferred_error = min_correct
-                    return          
+                    return    
+                z_error = z_error_candidate   
+                min_correct = (min_correct+min_correct_candidate)%2   
                 if sum(z_error) == 0:
-                    print("Solved")
+                    #print("Solved")
                     self.z_inferred_error = min_correct
+                    #print("Seems like our error is ",sum((self.error_z +min_correct)%2))
                     return 
                          
 
@@ -302,6 +319,7 @@ class ssf_decoding_sim():
 
         # check for logical Z-error
         elif (self.lx@residual_z % 2).any():
+            #print("Error happened")
             logical_weight = np.sum(residual_z)
             if logical_weight < self.min_logical_weight:
                 self.min_logical_weight = int(logical_weight)
@@ -363,8 +381,7 @@ class ssf_decoding_sim():
         else:
             self.px, self.py, self.pz = self.error_rate * \
                 xyz_error_bias/np.sum(xyz_error_bias)
-
-
+        print("px,py,pz ",self.px,self.py,self.pz)
         
         self.channel_probs_x = np.ones(self.N)*(self.px)
         self.channel_probs_z = np.ones(self.N)*(self.pz)
