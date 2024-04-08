@@ -11,7 +11,7 @@ print("Files and directories in '", path, "' :")
 # prints all files
 print(dir_list)
 nruns = 10000
-error = [0.01,0.05,0.01]
+error = [0.000001]
 for error_rate in error:
     for files in dir_list:
         fn = path+"/"+files

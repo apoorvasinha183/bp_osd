@@ -9,7 +9,7 @@ zscratch.py
 .ipynb_checkpoints
 
 #json files
-*json
+#*json
 
 #swp files
 *swp

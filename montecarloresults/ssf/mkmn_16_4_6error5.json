@@ -1,0 +1,31 @@
+{
+    "K": 16,
+    "N": 400,
+    "bp_method": "ms",
+    "channel_update": null,
+    "check_code": 1,
+    "error_rate": 0.05,
+    "max_iter": 0,
+    "min_logical_weight": 6,
+    "ms_scaling_factor": 0,
+    "osd_method": "osd_cs",
+    "osd_order": 42,
+    "output_file": "montecarloresults//ssf//mkmn_16_4_6error5.json",
+    "run_count": 10000,
+    "run_sim": 1,
+    "runtime": 20498.515140771866,
+    "runtime_readable": "05:41:38",
+    "save_interval": 2,
+    "seed": 42,
+    "ssf_logical_error_rate": 0.9739,
+    "ssf_success": 261,
+    "ssf_word_error_rate": 0.2037672590851547,
+    "start_date": "Wednesday, March 27, 2024 15:28:16",
+    "target_runs": 10000,
+    "tqdm_disable": 0,
+    "xyz_error_bias": [
+        0,
+        0,
+        1
+    ]
+}
