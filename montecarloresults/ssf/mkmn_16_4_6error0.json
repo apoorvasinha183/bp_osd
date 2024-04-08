@@ -6,26 +6,26 @@
     "check_code": 1,
     "error_rate": 1e-06,
     "max_iter": 0,
-    "min_logical_weight": 1,
+    "min_logical_weight": 2,
     "ms_scaling_factor": 0,
     "osd_method": "osd_cs",
     "osd_order": 42,
     "output_file": "montecarloresults//ssf//mkmn_16_4_6error0.json",
     "run_count": 10000,
     "run_sim": 1,
-    "runtime": 6.004108667373657,
-    "runtime_readable": "00:00:06",
+    "runtime": 35.521270990371704,
+    "runtime_readable": "00:00:35",
     "save_interval": 2,
     "seed": 42,
     "ssf_logical_error_rate": 9.999999999998899e-05,
     "ssf_success": 9999,
     "ssf_word_error_rate": 6.250292987619588e-06,
-    "start_date": "Sunday, April 07, 2024 23:08:59",
+    "start_date": "Monday, April 08, 2024 01:35:54",
     "target_runs": 10000,
     "tqdm_disable": 0,
     "xyz_error_bias": [
+        1,
         0,
-        0,
-        1
+        0
     ]
 }

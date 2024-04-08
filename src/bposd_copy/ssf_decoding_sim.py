@@ -142,49 +142,66 @@ class ssf_decoding_sim():
         # non-zero locations . Out of those find the  combination of flips that
         # if done give the largest flip weighted by the size of the flipset.
         #print("Syndrom I see is ",synd_x)
+        
+        support  = []
+        for rows in Hz:
+            #Figure out the non-zero locations
+            non_zero_idx = []
+            for i in range(len(rows)):
+                #print("i is ",i)
+                if rows[i] == 1:
+                    non_zero_idx.append(i)
+            #print("nonzero indices are ",len(non_zero_idx))
+            # Generate powerset 
+            #print("row sis ",rows)
+            #print("non zero locations ",non_zero_idx)
+            candidates = self._setofsets(non_zero_idx)
+            #print("Candidates are ",len(candidates))
+            support = support +candidates
+        #print("support before redundancy removal ",len(support))
+        for i in range(len(support)):
+            support[i] = frozenset(support[i])
+        support = set(support)
+        #print("support after redundancy removal ",len(support))
+        #print("after redundancy removal ",len(candidates))
         if sum(x_error)!=0 :
             
             minima = 0
-            
+            probable_error = min_correct.copy()
             while(1):
                 improved = 0
                 #print("Improvement perhaps")
-                for rows in Hz:
-                    #Figure out the non-zero locations
-                    non_zero_idx = []
-                    for i in range(len(rows)):
-                        #print("i is ",i)
-                        if rows[i] == 1:
-                            non_zero_idx.append(i)
-                    # Generate powerset 
-                    #print("row sis ",rows)
-                    #print("non zero locations ",non_zero_idx)
-                    candidates = self._setofsets(non_zero_idx)
-                    #print("total length is ",len(candidates))    
-                    probable_error = min_correct
-                    for candidate in candidates:
-                        # Flip the syndrome at the locations marked and check the decpreciation in weight
-                        
-                        current_Synd = x_error
-                        for positions in candidate:
-                            probable_error[positions] = (probable_error[positions]+1) % 2
-                        # Measure new syndromw
-                        new_Syndrome = self.hz @ probable_error % 2
-                        if sum(new_Syndrome) == 0:
-                            self.x_inferred_error = probable_error
-                            #print("Completely resolved!")
-                            return 
-                        improvement = (sum(current_Synd)-sum(new_Syndrome))/ sum(new_Syndrome)
-                        if improvement > minima:
-                            improved += 1
-                            #print("Breakthrough")
-                            min_correct = probable_error
-                            minima = len(new_Syndrome)-len(current_Synd)
-                            x_error = new_Syndrome
-                    if improved == 0:
-                        #print("Decoder failure!!")
-                        self.x_inferred_error = min_correct
-                        return       
+                minima = 0
+                for candidate in support:
+                    # Flip the syndrome at the locations marked and check the decpreciation in weight
+                    #probable_error = min_correct
+                    current_Synd = x_error.copy()
+                    probable_error = np.zeros(self.N)
+                    #print(candidate)
+                    for positions in candidate:
+                        probable_error[positions] = 1
+                    # Measure new syndromw
+                    new_Syndrome =(current_Synd + self.hz @ probable_error) % 2
+                    #if sum(new_Syndrome) == 0:
+                    #    #print("Error is ",sum(probable_error))
+                    #    min_correct = (min_correct+probable_error.copy())%2
+                    #    self.x_inferred_error = min_correct
+                    #    print("Completely resolved!")
+                    #    return 
+                    improvement = (sum(current_Synd)-sum(new_Syndrome))/ sum(probable_error)
+                    if improvement > minima:
+                        improved += 1
+                        #print("Breakthrough")
+                        min_correct = (min_correct+probable_error.copy())%2
+                        minima = improvement
+                        x_error_candidate = new_Syndrome.copy()
+                
+                if improved == 0:
+                    #print("Decoder failure!!")
+                    print("min correct weight ",sum(min_correct))
+                    self.x_inferred_error = min_correct
+                    return   
+                x_error = x_error_candidate.copy()    
         #self.x_inferred_error = min_correct
 
     def _ssf_z(self,synd_z):

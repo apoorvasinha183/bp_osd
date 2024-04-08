@@ -23,7 +23,7 @@ for error_rate in error:
         osd_options={
         'error_rate': error_rate,
         'target_runs': 10000,
-        'xyz_error_bias': [0, 0, 1],
+        'xyz_error_bias': [1, 0, 0],
         'output_file': fname,
         'bp_method': "ms",
         'ms_scaling_factor': 0,
