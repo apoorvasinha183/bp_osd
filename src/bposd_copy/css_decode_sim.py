@@ -64,7 +64,7 @@ class css_decode_sim():
         # default input values
         default_input = {
             'error_rate': None,
-            'xyz_error_bias': [1, 1, 1],
+            'xyz_error_bias': [0, 0, 1],
             'target_runs': 100,
             'seed': 0,
             'bp_method': "minimum_sum",
@@ -345,13 +345,13 @@ class css_decode_sim():
 
         print("Constructing CSS code from hx and hz matrices...")
         if isinstance(self.hx, np.ndarray) and isinstance(self.hz, np.ndarray):
-            qcode = css_code(self.hx, self.hz)
+            qcode = css_code(self.hx, self.hz,code_distance=True)
             self.lx = qcode.lx
             self.lz = qcode.lz
             self.K = qcode.K
             self.N = qcode.N
             print("Checking the CSS code is valid...")
-            if self.check_code and not qcode.test():
+            if self.check_code and not qcode.test(compute_distance=True):
                 raise Exception(
                     "Error: invalid CSS code. Check the form of your hx and hz matrices!")
         else:

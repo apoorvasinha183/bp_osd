@@ -2,16 +2,23 @@ import sys
 sys.path.append("src")
 import numpy as np
 from bposd.hgp import hgp
+import networkx as nx
+import matplotlib.pyplot as plt
 #from bposd.ssf_decoding_sim import ssf_decode_sim
 from src.bposd_copy.ssf_decoding_sim import ssf_decoding_sim
+from src.bposd_copy.random_seed import generate_biregular_graph
 import os
+
+
+
+
 path = "examples//codes//classical_seed_codes"
 dir_list = os.listdir(path)
 print("Files and directories in '", path, "' :")
 # prints all files
 print(dir_list)
 nruns = 10000
-error = [0.000001]
+error = [0.00001]
 for error_rate in error:
     for files in dir_list:
         fn = path+"/"+files

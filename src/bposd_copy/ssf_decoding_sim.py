@@ -119,7 +119,21 @@ class ssf_decoding_sim():
     def _setofsets(self,universalSet):
         """ Generates the powerset of a list/string/set"""
         # Stackexchanged "How to get all subsest of a set?"
-        return list(chain.from_iterable(combinations(universalSet,r) for r in range(1,len(universalSet)+1)))
+        n = len(universalSet)
+        subsets = []
+        
+        # Generate numbers from 1 to 2^n - 1 (binary representation)
+        # Each number corresponds to a subset
+        for i in range(1, 2**n):
+            subset = []
+            for j in range(n):
+                # Check if j-th bit of i is set (1)
+                if i & (1 << j):
+                    subset.append(universalSet[j])
+            subsets.append(subset)
+        
+        return subsets
+        #return list(chain.from_iterable(combinations(universalSet,r) for r in range(1,len(universalSet)+1)))
 
 
 
@@ -134,7 +148,7 @@ class ssf_decoding_sim():
         # padding
         # Bit error pair
         Hz = self.hz
-        x_error = synd_x
+        x_error = synd_x.copy()
         min_correct = np.zeros(self.N)
         if sum(synd_x) == 0:
             return min_correct
@@ -156,12 +170,28 @@ class ssf_decoding_sim():
             #print("row sis ",rows)
             #print("non zero locations ",non_zero_idx)
             candidates = self._setofsets(non_zero_idx)
+            #print(candidates)
             #print("Candidates are ",len(candidates))
             support = support +candidates
+        #print(candidates)
         #print("support before redundancy removal ",len(support))
+        pre_calc_matrix = []
+        weights = []
+        errors = []
         for i in range(len(support)):
-            support[i] = frozenset(support[i])
-        support = set(support)
+            probable_error = np.zeros(self.N)
+            #print(support[i])
+            probable_error[support[i]] = 1
+            errors.append(probable_error)
+            for positions in support[i]:
+                probable_error[positions] = 1
+            pre_calc_matrix.append( (self.hz @ probable_error)%2)
+            weights.append(sum(probable_error))
+        #support = set(support)
+        pre_calc_matrix = np.array(pre_calc_matrix)
+        weights = np.array(weights)
+        #print("self.N is ",self.N)
+        #print("precalc matrix is ",weights.shape)
         #print("support after redundancy removal ",len(support))
         #print("after redundancy removal ",len(candidates))
         if sum(x_error)!=0 :
@@ -169,39 +199,46 @@ class ssf_decoding_sim():
             minima = 0
             probable_error = min_correct.copy()
             while(1):
+                #print("infinite loop")
                 improved = 0
                 #print("Improvement perhaps")
-                minima = 0
-                for candidate in support:
-                    # Flip the syndrome at the locations marked and check the decpreciation in weight
-                    #probable_error = min_correct
-                    current_Synd = x_error.copy()
-                    probable_error = np.zeros(self.N)
-                    #print(candidate)
-                    for positions in candidate:
-                        probable_error[positions] = 1
-                    # Measure new syndromw
-                    new_Syndrome =(current_Synd + self.hz @ probable_error) % 2
-                    #if sum(new_Syndrome) == 0:
-                    #    #print("Error is ",sum(probable_error))
-                    #    min_correct = (min_correct+probable_error.copy())%2
-                    #    self.x_inferred_error = min_correct
-                    #    print("Completely resolved!")
-                    #    return 
-                    improvement = (sum(current_Synd)-sum(new_Syndrome))/ sum(probable_error)
-                    if improvement > minima:
-                        improved += 1
-                        #print("Breakthrough")
-                        min_correct = (min_correct+probable_error.copy())%2
-                        minima = improvement
-                        x_error_candidate = new_Syndrome.copy()
+                #minima = 0
+                 # Flip the syndrome at the locations marked and check the decpreciation in weight
+                #probable_error = min_correct
+                current_Synd = x_error.copy()
+                current_Synd = np.array(current_Synd)
+                #print("self.N is ",self.N)
+                #probable_error = np.zeros(self.N)
+                #print(candidate)
+                
+                # Measure new syndromw
+                new_Syndrome =(current_Synd + pre_calc_matrix) % 2
+                #print("new syndrome shape is ",new_Syndrome.shape)
+                #if sum(new_Syndrome) == 0:
+                #    #print("Error is ",sum(probable_error))
+                #    min_correct = (min_correct+probable_error.copy())%2
+                #    self.x_inferred_error = min_correct
+                #    print("Completely resolved!")
+                #    return 
+                improvement = (np.sum(current_Synd)-np.sum(new_Syndrome,axis=1))/ weights
+                improvement = np.max(improvement)
+                #print("improvement is ",improvement)
+                loc = np.argmax(improvement)
+                if improvement > minima:
+                    improved += 1
+                    #print("Breakthrough")
+                    min_correct_candidate = (min_correct+errors[loc])%2
+                    minima = improvement
+                    x_error_candidate = new_Syndrome[loc]
                 
                 if improved == 0:
                     #print("Decoder failure!!")
                     print("min correct weight ",sum(min_correct))
+                    print("Success is ",sum((synd_x+self.hz@min_correct)%2))
                     self.x_inferred_error = min_correct
                     return   
                 x_error = x_error_candidate.copy()    
+                min_correct = min_correct_candidate
         #self.x_inferred_error = min_correct
 
     def _ssf_z(self,synd_z):
@@ -332,6 +369,7 @@ class ssf_decoding_sim():
         if (self.lz@residual_x % 2).any():
             logical_weight = np.sum(residual_x)
             if logical_weight < self.min_logical_weight:
+                print("Here")
                 self.min_logical_weight = int(logical_weight)
 
         # check for logical Z-error
@@ -497,5 +535,6 @@ class ssf_decoding_sim():
         # return output_dict
         return json.dumps(output_dict,sort_keys=True, indent=4)
 
+# Example usage
 
 
