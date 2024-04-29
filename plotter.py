@@ -43,13 +43,29 @@ for n_qbits in M:
         d = 12    
         
     name = "[["+str(N)+","+str(k)+","+str(d)+"]]"
-    plt.plot(error,error_f,label=name)
+    error_eff = error.copy()
+    error_eff_out = error_f.copy()
+    if n_qbits==24:
+        error_eff = error_eff[2:]
+        error_eff_out = error_eff_out[2:]
+    if n_qbits==28:
+        error_eff = error_eff[3:]
+        error_eff_out = error_eff_out[3:]
+
+    #print("printing ",error_eff)    
+    plt.plot(error_eff,error_eff_out,label=name)
+plt.plot(error,error,label ='Threshold Line ',linestyle='dashed')    
+# distance 10 ad 12 need help
 plt.xlabel('Input Physical Error Rate')
 plt.ylabel('Logical/Word error rate')
-plt.ylim(1e-3,0.2)
-plt.legend(loc='upper right')  # Specify the location of the legend (e.g., upper right corner)
+plt.ylim(1e-7,0.2)
+
 plt.legend(fontsize='large')   # Set the font size of the legend
 plt.legend(title='Legend')
+plt.yscale('log')
+plt.xscale('log')
+plt.legend(loc='lower right')  
 plt.savefig("FinalResults.png")
+plt.title("Hypergraph Product Codes Plot")
 plt.show()    
 
